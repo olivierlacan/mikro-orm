@@ -72,13 +72,21 @@ loaded in order to make this decorator registration work (e.g. you import that f
 explicitly somewhere).
 
 ```typescript
-import { EntityName, EventArgs, EventSubscriber, Subscriber } from '@mikro-orm/core';
+import { EntityName, EventArgs, EventSubscriber, Subscriber, wrap } from '@mikro-orm/core';
 
 @Subscriber()
 export class AuthorSubscriber implements EventSubscriber<Author> {
 
   getSubscribedEntities(): EntityName<Author>[] {
     return [Author];
+  }
+  
+  async beforeUpdate(args: EventArgs<Author>): Promise<void> {
+    if(changeSet?.originalEntity?.email != entity.email) {
+      wrap(entity).assign({
+        emailChangedAt: new Date(),
+      });
+    }
   }
 
   async afterCreate(args: EventArgs<Author>): Promise<void> {
